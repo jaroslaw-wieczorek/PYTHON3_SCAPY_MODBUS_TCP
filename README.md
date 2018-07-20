@@ -14,9 +14,8 @@ INSTALATION:
 + $ cp -r Mobus ./env/lib/python3.6/site-package/
   
 
-Example of use: 
-
 ```Python
+# Example of use:
 >>> from Modbus.Modbus import *
 >>> pkt = ip/tcp/ModbusADU()
 >>> pkt.show()
