@@ -6,6 +6,11 @@ from math import ceil
 from struct import unpack
 import numpy as np
 
+coils = [0] * 65536
+discreteInputs = [0] * 65536
+holdingRegisters = [0] * 65536
+inputRegisters = [0] * 65536
+
 
 def TCP(conn, addr):
     """
@@ -19,18 +24,16 @@ def TCP(conn, addr):
     * 6 = Write Single Register or Analog Output
     * 15 = Write Coils or Digital Outputs
     * 16 = Write Holding Registers or Analog Outputs
-## Installation:
-    * sudo pip3 install modbus
-## Usage
-    * sudo python3 -m modbus.server
 """
     buffer = array('B', [0] * 300)
     cnt = 0
     while True:
-        if cnt < 60000: cnt = cnt + 1
-        else: cnt = 1
         try:
+            if cnt < 60000: cnt = cnt + 1
+            else: cnt = 1
+
             conn.recv_into(buffer)
+
             TID0 = buffer[0]   #Transaction ID  to sync
             TID1 = buffer[1]   #Transaction ID
             ID = buffer[6]     #Unit ID
@@ -77,11 +80,15 @@ def TCP(conn, addr):
             exit()
 
 if __name__ == '__main__':
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.bind(('', 502))
-    s.listen(1)
-    print("Start server")
-    while True:
-        conn, addr = s.accept()
-        print("Connected by", addr[0])
-        _thread.start_new_thread(TCP, (conn, addr))
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.bind(('', 502))
+        s.listen(1)
+        print("Start server")
+        while True:
+            conn, addr = s.accept()
+            print("Connected by", addr[0])
+            _thread.start_new_thread(TCP, (conn, addr))
+    except Exception as err:
+        print(err.message())
+        s.close()

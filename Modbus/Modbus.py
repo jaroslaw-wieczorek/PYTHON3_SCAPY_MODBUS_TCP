@@ -211,6 +211,19 @@ class ModbusPDU0F_Write_Multiple_Coils(Packet):
 			XShortField("quantityOutput", 0x0001),
 			BitFieldLenField("byteCount", None, 8, count_of="outputsValue", adjust=lambda pkt,x:x),
 			FieldListField("outputsValue", [0x00], XByteField("", 0x00), count_from = lambda pkt: pkt.byteCount)]
+
+class ModbusPDU0FWriteMultipleCoilsRequest(Packet):
+    name = "Write Multiple Coils"
+    fields_desc = [XByteField("funcCode", 0x0F),
+                   XShortField("startingAddr", 0x0000),
+                   XShortField("quantityOutput", 0x0001),
+                   BitFieldLenField("byteCount", None, 8, count_of="outputsValue"),
+                   FieldListField("outputsValue", [0x00], XByteField("", 0x00), count_from=lambda pkt: pkt.byteCount)]
+
+    def extract_padding(self, s):
+        return b"", None
+
+
 class ModbusPDU0F_Write_Multiple_Coils_Answer(Packet):
 	name = "Write Multiple Coils Answer"
 	fields_desc = [ XByteField("funcCode", 0x0F),
