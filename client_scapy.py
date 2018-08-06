@@ -13,42 +13,65 @@ from struct import pack
 from struct import unpack
 from random import randint
 from functools import reduce
+import time
 from argparse import ArgumentParser
 
-def generateTraffic(self, client):
-    fc = random.choice([1,2,3,4,5,15,16])
-    add = random.randint(0, 65535)
 
-    if fc in [1,2]:
-        qua = random.randint(0,2016)
-        client.read(fc, add, qua)
 
-    elif fc in [3,4]:
-        qua = random.randint(0,126)
-        client.read(fc, add, qua)
+def generateTraffic(host, unit):
+    client = Client(host, unit)
 
-    elif fc == 5:
-        outVal = random.randint(0,2016)
-        client.write(fc, add, outVal)
+    while True:
+        try:
+            fc = random.choice([1,2,3,4,5,15,16])
+            add = random.randint(0, 65535)
 
-    elif fc == 6:
-        regVal = random.randint(0,65535)
-        client.write(fc, add, regVal)
+            if fc in [1,2]:
+                print(fc)
+                qua = random.randint(0,2016)
+                client.read(fc, add, qua)
 
-    elif fc == 15:
-        qun = random.randint(0,65535)
-        dat = []
-        for i in range(0, qun):
-            dat.append(random.randint(0,1))
-        client.write(fc, add, dat)
+            elif fc in [3,4]:
+                print(fc)
+                qua = random.randint(0,126)
+                client.read(fc, add, qua)
 
-    elif fc == 16:
-        qun = random.randint(0,65535)
-        dat = []
-        for i in range(0, qun):
-            dat.append(random.randint(0,65535))
-        client.write(fc, add, dat)
+            elif fc == 5:
+                print(fc)
+                outVal = random.randint(0,2016)
+                client.write(int(fc), int(add), str(outVal))
 
+            elif fc == 6:
+                print(fc)
+                regVal = random.randint(0,65535)
+                client.write(fc, add, regVal)
+
+            elif fc == 15:
+                print(fc)
+                qun = random.randint(1,40)
+                print(qun)
+                dat = []
+                dat.append(random.randint(0,1))
+                print(dat)
+                for i in range(1, qun):
+                    dat.append(random.randint(0,1))
+                client.write(fc, add, dat)
+
+            elif fc == 16:
+                print(fc)
+                qun = random.randint(1,40)
+                print(qun)
+                dat = []
+                dat.append(random.randint(0,65535))
+                for i in range(1, qun):
+                    dat.append(random.randint(0,65535))
+                client.write(fc, add, dat)
+
+            delay = random.uniform(0.1, 1.5)
+            time.sleep(delay)
+        except Exception as err:
+            print(err)
+            break
 
 
 def bytReq(n):
@@ -59,15 +82,13 @@ def bytReq(n):
 class Client(object):
     """Docstring for Client."""
 
-    def __init__(self, host='localhost', unit=1, loop=False):
+    def __init__(self, host='127.0.0.2', unit=1):
         """Init."""
         super(Client, self).__init__()
 
-        self.host = "127.0.0.1"
+        self.host = '127.0.0.2'
         self.unit = unit
         self.port = 502
-        self.loop = loop
-
 
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect((self.host, self.port))
@@ -126,7 +147,7 @@ class Client(object):
             name ="Read Coils"
             print("\nCreate Message with FC=%i:" % self.FC, name)
             cmd = ModbusADURequest(transId=self.TRANS_ID,
-                                   protoId=0, len=6, unitId=1)
+                                   protoId=0x0, len=0x6, unitId=1)
 
             cmd = cmd/ModbusPDU01ReadCoilsRequest(funcCode=self.FC,
                                              quantity=self.LEN,
@@ -146,7 +167,7 @@ class Client(object):
             name = "Read Discrete Inputs"
             print("\nCreate Message with FC=%i:" % self.FC, name)
             cmd = ModbusADURequest(transId=self.TRANS_ID,
-                                   protoId=0, len=6, unitId=1)
+                                   protoId=0x0, len=0x6, unitId=1)
             cmd = cmd/ModbusPDU02ReadDiscreteInputsRequest(funcCode=self.FC,
                                                            quantity=self.LEN,
                                                            startAddr=self.ADD)
@@ -164,7 +185,7 @@ class Client(object):
             name = "Read Holding Registers"
             print("\nCreate Message with FC=%i:" % self.FC, name)
             cmd = ModbusADURequest(transId=self.TRANS_ID,
-                                   protoId=0, len=6, unitId=1)
+                                   protoId=0x0, len=0x6, unitId=1)
             cmd = cmd/ModbusPDU03ReadHoldingRegistersRequest(funcCode=self.FC,
                                                              quantity=self.LEN,
                                                              startAddr=self.ADD)
@@ -183,7 +204,7 @@ class Client(object):
             name = "Read Input Registers Request"
             print("\nCreate Message with FC=%i:" % self.FC, name)
             cmd = ModbusADURequest(transId=self.TRANS_ID,
-                                   protoId=0, len=6, unitId=1)
+                                   protoId=0x0, len=0x6, unitId=1)
             cmd = cmd/ModbusPDU04ReadInputRegistersRequest(funcCode=self.FC,
                                                            quantity=self.LEN,
                                                            startAddr=self.ADD)
@@ -252,8 +273,8 @@ class Client(object):
             name = "Write Single Coil Request"
             print("\nCreate Message with FC=%i:" % self.FC, name)
 
-            cmd = ModbusADURequest(transId=0, len=6,
-                                   protoId=0, unitId=1)
+            cmd = ModbusADURequest(transId=self.TRANS_ID, len=0x6,
+                                   protoId=0x0, unitId=1)
 
             cmd = cmd/ModbusPDU05WriteSingleCoilRequest(
                 funcCode=self.FC,
@@ -276,8 +297,8 @@ class Client(object):
             name = "Write Single Register Request"
             print("\nCreate Message with FC=%i:" % self.FC, name)
             cmd = ModbusADURequest(transId=self.TRANS_ID,
-                                   protoId=0, unitId=1,
-                                   len=6)
+                                   protoId=0x0, unitId=1,
+                                   len=0x6)
 
             cmd = cmd/ModbusPDU06WriteSingleRegisterRequest(
                     funcCode=self.FC,
@@ -375,7 +396,6 @@ class Client(object):
             self.write_build()
 
 
-
 def main():
     """Main."""
     parser = ArgumentParser(description="Modbus Client Program")
@@ -390,14 +410,15 @@ def main():
     parser.add_argument('-u', dest='unit', type=int,
                         help="Unit Number [Default=1]", default=1)
     args = parser.parse_args()
-    c = Client(args.host, args.unit, args.loop)
 
-
+    if args.loop is True:
+        generateTraffic(args.host, args.unit)
+    else:
+        c = Client(args.host, args.unit)
     while True:
         S = input("Enter: FunctionCode, Address, Length of Registers "
                   + "to Read or Value of Registers to Write\n")
         L = S.strip().split(',')
-
 
         if int(L[0]) < 5 and int(L[0]) > 0:
             print("Received =", c.read(int(L[0]),

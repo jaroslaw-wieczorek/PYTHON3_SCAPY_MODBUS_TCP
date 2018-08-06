@@ -90,5 +90,5 @@ if __name__ == '__main__':
             print("Connected by", addr[0])
             _thread.start_new_thread(TCP, (conn, addr))
     except Exception as err:
-        print(err.message())
+        print(err)
         s.close()
