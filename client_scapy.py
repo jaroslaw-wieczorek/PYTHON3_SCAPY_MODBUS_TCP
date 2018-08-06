@@ -2,7 +2,7 @@
 # !/usr/bin/python3
 
 from scapy.all import *
-#from Modbus.Modbus import *
+# from Modbus.Modbus import *
 from scapy.contrib.modbus import *
 
 import socket
@@ -17,54 +17,53 @@ import time
 from argparse import ArgumentParser
 
 
-
 def generateTraffic(host, unit):
     client = Client(host, unit)
 
     while True:
         try:
-            fc = random.choice([1,2,3,4,5,15,16])
+            fc = random.choice([1, 2, 3, 4, 5, 15, 16])
             add = random.randint(0, 65535)
 
-            if fc in [1,2]:
+            if fc in [1, 2]:
                 print(fc)
-                qua = random.randint(0,2016)
+                qua = random.randint(0, 2016)
                 client.read(fc, add, qua)
 
-            elif fc in [3,4]:
+            elif fc in [3, 4]:
                 print(fc)
-                qua = random.randint(0,126)
+                qua = random.randint(0, 126)
                 client.read(fc, add, qua)
 
             elif fc == 5:
                 print(fc)
-                outVal = random.randint(0,2016)
+                outVal = random.randint(0, 2016)
                 client.write(int(fc), int(add), str(outVal))
 
             elif fc == 6:
                 print(fc)
-                regVal = random.randint(0,65535)
+                regVal = random.randint(0, 65535)
                 client.write(fc, add, regVal)
 
             elif fc == 15:
                 print(fc)
-                qun = random.randint(1,40)
+                qun = random.randint(1, 40)
                 print(qun)
                 dat = []
-                dat.append(random.randint(0,1))
+                dat.append(random.randint(0, 1))
                 print(dat)
                 for i in range(1, qun):
-                    dat.append(random.randint(0,1))
+                    dat.append(random.randint(0, 1))
                 client.write(fc, add, dat)
 
             elif fc == 16:
                 print(fc)
-                qun = random.randint(1,40)
+                qun = random.randint(1, 40)
                 print(qun)
                 dat = []
-                dat.append(random.randint(0,65535))
+                dat.append(random.randint(0, 65535))
                 for i in range(1, qun):
-                    dat.append(random.randint(0,65535))
+                    dat.append(random.randint(0, 65535))
                 client.write(fc, add, dat)
 
             delay = random.uniform(0.1, 1.5)
@@ -76,7 +75,7 @@ def generateTraffic(host, unit):
 
 def bytReq(n):
     """Count required bytes for number."""
-    return int(ceil(int(n).bit_length()/8))
+    return int(ceil(int(n).bit_length() / 8))
 
 
 class Client(object):
@@ -107,7 +106,6 @@ class Client(object):
         self.DAT_val = []
         self.TRANS_ID = 0
 
-
     def clear(self):
         self.lADD = 0
         self.mADD = 0
@@ -123,8 +121,6 @@ class Client(object):
         self.TRANS_ID = 0
         self.DAT_val = []
 
-
-
     def help(self):
         """Help."""
         print("Supported Function Codes:\n\
@@ -137,27 +133,28 @@ class Client(object):
                 15 = Write Coils or Digital Outputs\n\
                 16 = Write Holding Registers")
 
-
     def read_build(self):
         """Read_build function."""
         self.TRANS_ID = randint(0, 255)
         self.buffer = None
 
         if self.FC == 1:
-            name ="Read Coils"
+            name = "Read Coils"
             print("\nCreate Message with FC=%i:" % self.FC, name)
             cmd = ModbusADURequest(transId=self.TRANS_ID,
                                    protoId=0x0, len=0x6, unitId=1)
 
-            cmd = cmd/ModbusPDU01ReadCoilsRequest(funcCode=self.FC,
-                                             quantity=self.LEN,
-                                             startAddr=self.ADD)
+            cmd = cmd / ModbusPDU01ReadCoilsRequest(
+                funcCode=self.FC,
+                quantity=self.LEN,
+                startAddr=self.ADD)
+
             cmd.show()
 
             adu_res = ModbusADUResponse()
             pdu_res = ModbusPDU01ReadCoilsResponse()
-            self.buffer = array('B', [0] * len(bytes(adu_res/pdu_res)))
 
+            self.buffer = array('B', [0] * len(bytes(adu_res / pdu_res)))
 
             self.sock.send(bytes(cmd))
             self.sock.recv_into(self.buffer)
@@ -166,16 +163,20 @@ class Client(object):
         elif self.FC == 2:
             name = "Read Discrete Inputs"
             print("\nCreate Message with FC=%i:" % self.FC, name)
+
             cmd = ModbusADURequest(transId=self.TRANS_ID,
                                    protoId=0x0, len=0x6, unitId=1)
-            cmd = cmd/ModbusPDU02ReadDiscreteInputsRequest(funcCode=self.FC,
-                                                           quantity=self.LEN,
-                                                           startAddr=self.ADD)
+
+            cmd = cmd / ModbusPDU02ReadDiscreteInputsRequest(
+                funcCode=self.FC,
+                quantity=self.LEN,
+                startAddr=self.ADD)
+
             cmd.show()
 
             adu_res = ModbusADUResponse()
             pdu_res = ModbusPDU02ReadDiscreteInputsResponse()
-            self.buffer = array('B', [0] * len(bytes(adu_res/pdu_res)))
+            self.buffer = array('B', [0] * len(bytes(adu_res / pdu_res)))
 
             self.sock.send(bytes(cmd))
             self.sock.recv_into(self.buffer)
@@ -184,44 +185,48 @@ class Client(object):
         elif self.FC == 3:
             name = "Read Holding Registers"
             print("\nCreate Message with FC=%i:" % self.FC, name)
+
             cmd = ModbusADURequest(transId=self.TRANS_ID,
                                    protoId=0x0, len=0x6, unitId=1)
-            cmd = cmd/ModbusPDU03ReadHoldingRegistersRequest(funcCode=self.FC,
-                                                             quantity=self.LEN,
-                                                             startAddr=self.ADD)
+            cmd = cmd / ModbusPDU03ReadHoldingRegistersRequest(
+                funcCode=self.FC,
+                quantity=self.LEN,
+                startAddr=self.ADD)
+
             cmd.show()
 
             adu_res = ModbusADUResponse()
             pdu_res = ModbusPDU03ReadHoldingRegistersResponse()
-            self.buffer = array('B', [0] * len(bytes(adu_res/pdu_res)))
+            self.buffer = array('B', [0] * len(bytes(adu_res / pdu_res)))
 
             self.sock.send(bytes(cmd))
             self.sock.recv_into(self.buffer)
             print("Got response for FC=%i" % self.FC, self.buffer)
-
 
         elif self.FC == 4:
             name = "Read Input Registers Request"
             print("\nCreate Message with FC=%i:" % self.FC, name)
+
             cmd = ModbusADURequest(transId=self.TRANS_ID,
                                    protoId=0x0, len=0x6, unitId=1)
-            cmd = cmd/ModbusPDU04ReadInputRegistersRequest(funcCode=self.FC,
-                                                           quantity=self.LEN,
-                                                           startAddr=self.ADD)
+
+            cmd = cmd / ModbusPDU04ReadInputRegistersRequest(
+                funcCode=self.FC,
+                quantity=self.LEN,
+                startAddr=self.ADD)
+
             cmd.show()
 
             adu_res = ModbusADUResponse()
             pdu_res = ModbusPDU04ReadInputRegistersResponse()
-            self.buffer = array('B', [0] * len(bytes(adu_res/pdu_res)))
+            self.buffer = array('B', [0] * len(bytes(adu_res / pdu_res)))
 
             self.sock.send(bytes(cmd))
             self.sock.recv_into(self.buffer)
             print("Got response for FC=%i" % self.FC, self.buffer)
 
-
         else:
             self.help()
-
 
     def read(self, FC, ADD, LEN):
         """Read function."""
@@ -237,7 +242,6 @@ class Client(object):
         else:
             self.read_build()
 
-
     def write_build(self):
         """Write_build."""
         self.TRANS_ID = randint(0, 255)
@@ -247,7 +251,8 @@ class Client(object):
         self.DAT_val = []
 
         for index, data in enumerate(self.DAT):
-            if self.FC not in [5,6]:
+
+            if self.FC not in [5, 6]:
                 self.VAL = self.VAL + pack('>H', int(data))
                 self.DAT[index] = int(data)
             else:
@@ -259,15 +264,13 @@ class Client(object):
         if self.FC in [5, 15]:
             self.LEN = len(self.VAL) * 8
         else:
-            self.LEN = int(len(self.VAL)/ 2)
-
+            self.LEN = int(len(self.VAL) / 2)
 
         self.lLEN = self.LEN & 0x00FF
         self.mLEN = self.LEN >> 8
 
         for index, data in enumerate(self.VAL):
             self.DAT_val.append(int(self.VAL[index]))
-
 
         if self.FC == 5:
             name = "Write Single Coil Request"
@@ -276,18 +279,18 @@ class Client(object):
             cmd = ModbusADURequest(transId=self.TRANS_ID, len=0x6,
                                    protoId=0x0, unitId=1)
 
-            cmd = cmd/ModbusPDU05WriteSingleCoilRequest(
+            cmd = cmd / ModbusPDU05WriteSingleCoilRequest(
                 funcCode=self.FC,
                 outputAddr=self.ADD,
                 outputValue=0 if int(self.DAT) in [None, 0] else 0xFF00)
 
-            print("FC5:=bytes(cmd)",bytes(cmd))
+            print("FC5:=bytes(cmd)", bytes(cmd))
             cmd.show()
 
             adu_res = ModbusADUResponse()
             pdu_res = ModbusPDU05WriteSingleCoilResponse()
 
-            self.buffer = array('B', [0] * len(bytes(adu_res/pdu_res)))
+            self.buffer = array('B', [0] * len(bytes(adu_res / pdu_res)))
 
             self.sock.send(bytes(cmd))
             self.sock.recv_into(self.buffer)
@@ -300,79 +303,90 @@ class Client(object):
                                    protoId=0x0, unitId=1,
                                    len=0x6)
 
-            cmd = cmd/ModbusPDU06WriteSingleRegisterRequest(
-                    funcCode=self.FC,
-                    registerAddr=self.ADD,
-                    registerValue=int(self.DAT))
+            cmd = cmd / ModbusPDU06WriteSingleRegisterRequest(
+                funcCode=self.FC,
+                registerAddr=self.ADD,
+                registerValue=int(self.DAT))
 
             cmd.show()
             adu_res = ModbusADUResponse()
             pdu_res = ModbusPDU06WriteSingleRegisterResponse()
 
-            self.buffer = array('B', [0] * len(bytes(adu_res/pdu_res)))
+            self.buffer = array('B', [0] * len(bytes(adu_res / pdu_res)))
 
             self.sock.send(bytes(cmd))
             self.sock.recv_into(self.buffer)
             print("Got response for FC=%i" % self.FC, self.buffer)
 
         elif self.FC == 15:
-            array_content = array('B', [0, 0, 0, 0, 0, 7 + len(self.VAL),
-                              self.unit, self.FC, self.mADD, self.lADD,
-                              self.mLEN, self.lLEN, len(self.VAL)])
-            array_content.extend(self.VAL)
+            array_content = array(
+                'B',
+                [
+                    0, 0, 0, 0, 0, 7 + len(self.VAL), self.unit, self.FC,
+                    self.mADD, self.lADD, self.mLEN, self.lLEN, len(self.VAL)
+                ]
+            )
 
+            array_content.extend(self.VAL)
 
             name = "Write Multiple Coils Request"
             print("\nCreate Message wit(bytesh FC=%i:" % self.FC, name)
 
             modbusADU = ModbusADURequest(transId=self.TRANS_ID, protoId=0x0,
-                                         len=7+len(self.VAL), unitId=0x1)
+                                         len=7 + len(self.VAL), unitId=0x1)
 
             modbusPDU0F = ModbusPDU0FWriteMultipleCoilsRequest(
-                                    funcCode=self.FC,
-                                    startingAddr=self.ADD,
-                                    quantityOutput=self.LEN,
-                                    byteCount=len(self.VAL),
-                                    outputsValue=self.DAT_val)
+                funcCode=self.FC,
+                startingAddr=self.ADD,
+                quantityOutput=self.LEN,
+                byteCount=len(self.VAL),
+                outputsValue=self.DAT_val)
 
-            cmd = modbusADU/modbusPDU0F
+            cmd = modbusADU / modbusPDU0F
 
-            #cmd.show()
+            # cmd.show()
             adu_res = ModbusADUResponse()
             pdu_res = ModbusPDU0FWriteMultipleCoilsResponse()
 
-            self.buffer = array('B', [0] * len(bytes(adu_res/pdu_res)))
+            self.buffer = array('B', [0] * len(bytes(adu_res / pdu_res)))
 
             self.sock.send(array('B', bytes(cmd)))
             self.sock.recv_into(self.buffer)
             print("Got response for FC=%i" % self.FC, self.buffer)
 
         elif self.FC == 16:
-            array_content = array('B', [0, 0, 0, 0, 0, 7 + len(self.VAL),
-                              self.unit, self.FC, self.mADD, self.lADD,
-                              self.mLEN, self.lLEN, len(self.VAL)])
+            array_content = array(
+                'B',
+                [
+                    0, 0, 0, 0, 0, 7 + len(self.VAL),
+                    self.unit, self.FC, self.mADD, self.lADD,
+                    self.mLEN, self.lLEN, len(self.VAL)
+                ]
+            )
+
             array_content.extend(self.VAL)
 
             name = "Write Multiple Registers Request"
             print("\nCreate Message with FC=%i:" % self.FC, name)
 
-            modbusADU = ModbusADURequest(transId=self.TRANS_ID, protoId=0x0,
-                                   len=7+len(self.VAL), unitId=0x1)
+            modbusADU = ModbusADURequest(
+                transId=self.TRANS_ID, protoId=0x0,
+                len=7 + len(self.VAL), unitId=0x1)
 
             modbusPDU10 = ModbusPDU10WriteMultipleRegistersRequest(
-                                    funcCode=self.FC,
-                                    startingAddr=self.ADD,
-                                    quantityRegisters=self.LEN,
-                                    byteCount=len(self.VAL),
-                                    outputsValue=self.DAT_val)
+                funcCode=self.FC,
+                startingAddr=self.ADD,
+                quantityRegisters=self.LEN,
+                byteCount=len(self.VAL),
+                outputsValue=self.DAT_val)
 
-            cmd = modbusADU/modbusPDU10
+            cmd = modbusADU / modbusPDU10
 
-            #cmd.show()
+            # cmd.show()
             adu_res = ModbusADUResponse()
             pdu_res = ModbusPDU10WriteMultipleRegistersRequest()
 
-            self.buffer = array('B', [0] * len(bytes(adu_res/pdu_res)))
+            self.buffer = array('B', [0] * len(bytes(adu_res / pdu_res)))
 
             self.sock.send(bytes(cmd))
             self.sock.recv_into(self.buffer)
@@ -416,8 +430,9 @@ def main():
     else:
         c = Client(args.host, args.unit)
     while True:
-        S = input("Enter: FunctionCode, Address, Length of Registers "
-                  + "to Read or Value of Registers to Write\n")
+        S = input("Enter: FunctionCode, Address, Length " +
+                  "of Registers to Read or Value of Registers to Write\n")
+
         L = S.strip().split(',')
 
         if int(L[0]) < 5 and int(L[0]) > 0:
