@@ -81,7 +81,7 @@ def bytReq(n):
 class Client(object):
     """Docstring for Client."""
 
-    def __init__(self, host='127.0.0.2', unit=1):
+    def __init__(self, host='10.230.24.180', unit=1):
         """Init."""
         super(Client, self).__init__()
 
