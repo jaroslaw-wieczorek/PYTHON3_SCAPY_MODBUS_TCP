@@ -26,6 +26,7 @@ wheels/
 *.pcap
 *.pcapng
 MANIFEST
+wszystkie_zmienne_procesowe
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
