@@ -55,6 +55,11 @@ def sniff_callback(pkt):
         elif pkt.haslayer(ModbusPDU0FWriteMultipleCoilsRequest):
             b = pkt["ModbusPDU0FWriteMultipleCoilsRequest"]
             req[5] = [b.funcCode, b.startingAddr, b.quantityOutput, b.byteCount, b.outputsValue]
+
+        elif pkt.haslayer(ModbusPDU10WriteMultipleRegistersRequest):
+            b = pkt["ModbusPDU10WriteMultipleRegistersRequest"]
+            req[5] = [b.funcCode, b.startingAddr, b.quantityRegisters, b.byteCount, b.outputsValue]
+
         wr.writerow(req)
 
     elif pkt.haslayer(ModbusADUResponse):
@@ -92,6 +97,10 @@ def sniff_callback(pkt):
         elif pkt.haslayer(ModbusPDU0FWriteMultipleCoilsResponse):
             b = pkt["ModbusPDU0FWriteMultipleCoilsResponse"]
             req[5] = [b.funcCode, b.startingAddr, b.quantityOutput]
+
+        elif pkt.haslayer(ModbusPDU10WriteMultipleRegistersResponse):
+            b = pkt["ModbusPDU10WriteMultipleRegistersResponse"]
+            req[5] = [b.funcCode, b.startingAddr, b.quantityRegisters]
         wr.writerow(req)
     counter += 1
     if counter % 10000 == 0:
