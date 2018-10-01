@@ -2,9 +2,7 @@
 # !/usr/bin/python3
 
 from scapy.all import *
-# from Modbus.Modbus import *
 from scapy.contrib.modbus import *
-
 
 counter = 0
 list_modbus_data = []
@@ -16,10 +14,49 @@ import csv
 myfile = open(filename, 'w+')
 wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
 
+""" 
+Działanie skrypu wyciągającego zmienne procesowe dla prtokołu Modbus/TCP.
 
+Skrypt przyjmuje plik pcap lub pcapng zawierający ruch sieciowy.
+
+Za pomocą biblioteki Scapy odczytywany jest pakiet po pakiecie znajdujący się w podanym pliku. 
+
+Podczas odczytywania pakitow wykonywna jest funckja sniff_callback. 
+
+W biblitoece SCAPY została zaimplementowana obsługa następujących kodów funkcyjnych: 01, 02, 03, 04, 05, 06, 07, 15 i 16
+
+Lista kodów i ich znacznie:    
+    01  -   ModbusPDU01ReadCoils
+
+    02  -   ModbusPDU02ReadDiscreteInputs
+
+    03  -   ModbusPDU03ReadHoldingRegisters
+
+    04  -   ModbusPDU04ReadInputRegisters
+
+    05  -   ModbusPDU05WriteSingleCoil
+
+    06  -   ModbusPDU06WriteSingleRegister
+
+    07  -   ModbusPDU07ReadExceptionStatus
+
+    08  -   ModbusPDU0FWriteMultipleCoils
+
+    09  -   ModbusPDU10WriteMultipleRegisters
+
+W pierwszej kolejności sprawdzane jest: Czy analizowany pakiet jest requestem, czy responsem protokołu Modbus/TCP - jeśli nie jest żadnym z nich zostaje pominięty.
+
+Nastpęnie po ustaleniu typu pakietu i kodu funkcji, zostaje on zapisywany do pliku tekstowego jako lista z podziałem na wszystkie pola.
+
+Aby kontrolować konkretną zmienną procesorową należy kontrolować odpowiedzi urządzenia, znać jej położenie oraz miejsce przechowywania (np numer rejestru), a następnie odfiltrować wybrane wartości.
+
+
+"""
+ 
 def sniff_callback(pkt):
     global counter, wr
 
+    # sprawdzenie czy pakiet zawiera żądanie
     if pkt.haslayer(ModbusADURequest):
         a = pkt["ModbusADURequest"]
         req = ["ModbusADURequest", a.transId, a.protoId, a.len, a.unitId, []]
@@ -54,14 +91,18 @@ def sniff_callback(pkt):
 
         elif pkt.haslayer(ModbusPDU0FWriteMultipleCoilsRequest):
             b = pkt["ModbusPDU0FWriteMultipleCoilsRequest"]
-            req[5] = [b.funcCode, b.startingAddr, b.quantityOutput, b.byteCount, b.outputsValue]
+            req[5] = [b.funcCode, b.startingAddr, b.quantityOutput,
+                      b.byteCount, b.outputsValue]
 
         elif pkt.haslayer(ModbusPDU10WriteMultipleRegistersRequest):
             b = pkt["ModbusPDU10WriteMultipleRegistersRequest"]
-            req[5] = [b.funcCode, b.startingAddr, b.quantityRegisters, b.byteCount, b.outputsValue]
+            req[5] = [b.funcCode, b.startingAddr, b.quantityRegisters,
+                      b.byteCount, b.outputsValue]
 
         wr.writerow(req)
 
+
+    # sprawdzenie czy pakiet zawiera odpowiedź
     elif pkt.haslayer(ModbusADUResponse):
         a = pkt["ModbusADUResponse"]
         req = ["ModbusADUResponse", a.transId, a.protoId, a.len, a.unitId, []]
@@ -101,17 +142,20 @@ def sniff_callback(pkt):
         elif pkt.haslayer(ModbusPDU10WriteMultipleRegistersResponse):
             b = pkt["ModbusPDU10WriteMultipleRegistersResponse"]
             req[5] = [b.funcCode, b.startingAddr, b.quantityRegisters]
+
         wr.writerow(req)
+
     counter += 1
     if counter % 10000 == 0:
         print(counter)
+
 
 def sniff_packets(filename):
     print("Sniff")
     global list_modbus_data
 
     packets = sniff(offline=filename, prn=sniff_callback)
-
+    print("Packets:", len(packets))
 
 
 def main():
@@ -119,6 +163,7 @@ def main():
     filename = "bms.pcap"
     sniff_packets(filename)
     myfile.close()
+
 
 if __name__ == '__main__':
     main()
