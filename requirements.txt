@@ -69,7 +69,7 @@ pycups==1.9.73
 pycurl==7.43.0.1
 pydocstyle==2.1.1
 pyflakes==1.6.0
-Pygments==2.2.0
+Pygments==2.7.4
 pygobject==3.26.1
 pylama==7.4.3
 pylama-pylint==3.0.1
