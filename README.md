@@ -11,7 +11,7 @@ INSTALATION:
 + $ pip3 install scapy
   
 3. Add my libaries:
-+ $ cp -r Mobus ./env/lib/python3.6/site-package/
++ $ cp -r Mobus ./env/lib/python3.x/site-package/
   
 
 ```Python
